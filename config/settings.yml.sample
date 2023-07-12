@@ -12,7 +12,7 @@ timezone_offset: -5
 # ntp configurations
 #   ntp_server - if you have a local server (e.g. stratum1), you can use this setting
 #        to specify a hostname or ip address to communicate with the ntp server
-ntp_server: ''
+ntp_server: []
 
 # test settings when running test scripts
 #   test_gain - gain to use for scanner test scripts
@@ -126,7 +126,7 @@ produce_polar_direction_graph: true
 ground_station_location: ''
 show_sun_elevation: true
 show_pass_direction: true
-noaa_daytime_enhancements: 'MCIR MCIR-precip MSA MSA-precip HVC-precip HVCT-precip HVC HVCT ZA therm CC HE HF MD BD MB JF JJ LC TA WV NO sea' 
+noaa_daytime_enhancements: 'MCIR MCIR-precip MSA MSA-precip HVC-precip HVCT-precip HVC HVCT ZA therm CC HE HF MD BD MB JF JJ LC TA WV NO sea'
 noaa_nighttime_enhancements: 'MCIR MCIR-precip HVCT ZA therm NO TA sea'
 noaa_crop_toptobottom: true
 noaa_interpolate: false
