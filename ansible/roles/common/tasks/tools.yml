@@ -41,29 +41,52 @@
     dest: /usr/bin/medet_arm
     owner: root
     group: root
-    mode: 0755
-    remote_src: yes
+    mode: '0755'
+    remote_src: true
 
 - name: remove old scheduling cron job
   cron:
+    name: "{{ item.name }}"
+    minute: 1
+    hour: 0
+    job: "{{ item.job }}"
     disabled: yes
-    name: schedule passes
-    minute: 1
-    hour: 0
-    job: "{{ noaa_home }}/scripts/schedule.sh"
+  loop:
+    - name: schedule passes
+      job: "{{ noaa_home }}/scripts/schedule.sh"
+    - name: schedule passes daily
+      job: "{{ noaa_home }}/scripts/schedule.sh -t"
 
-- name: create scheduling cron job
+- name: remove old scheduling cron job @ reboot
   cron:
-    name: schedule passes daily
-    minute: 1
-    hour: 0
-    job: "{{ noaa_home }}/scripts/schedule.sh -t"
-
-- name: create scheduling cron job @ reboot
-  cron:
+    disabled: true
     name: schedule passes after reboot
     special_time: reboot
     job: "{{ noaa_home }}/scripts/schedule.sh"
+
+- name: create the systemd pass schedule service
+  ansible.builtin.template:
+    src: schedule-passes.service.j2
+    dest: /etc/systemd/system/schedule-passes.service
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: create the systemd pass schedule timer
+  ansible.builtin.copy:
+    src: schedule-passes.timer
+    dest: /etc/systemd/system/schedule-passes.timer
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: enable the pass schedule timer
+  ansible.builtin.systemd:
+    name: schedule-passes.timer
+    enabled: true
+  become: true
 
 - name: create database
   shell: "/usr/bin/sqlite3 {{ noaa_home }}/db/panel.db < {{ noaa_home }}/db_migrations/00_seed_schema.sql"

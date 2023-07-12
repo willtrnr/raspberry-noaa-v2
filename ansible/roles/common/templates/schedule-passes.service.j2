@@ -1,0 +1,6 @@
+[Unit]
+Description=Schedule passes
+
+[Service]
+ExecStart={{ noaa_home }}/scripts/schedule.sh -t
+User=pi
