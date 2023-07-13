@@ -44,26 +44,6 @@
     mode: '0755'
     remote_src: true
 
-- name: remove old scheduling cron job
-  cron:
-    name: "{{ item.name }}"
-    minute: 1
-    hour: 0
-    job: "{{ item.job }}"
-    disabled: yes
-  loop:
-    - name: schedule passes
-      job: "{{ noaa_home }}/scripts/schedule.sh"
-    - name: schedule passes daily
-      job: "{{ noaa_home }}/scripts/schedule.sh -t"
-
-- name: remove old scheduling cron job @ reboot
-  cron:
-    disabled: true
-    name: schedule passes after reboot
-    special_time: reboot
-    job: "{{ noaa_home }}/scripts/schedule.sh"
-
 - name: create the systemd pass schedule service
   ansible.builtin.template:
     src: schedule-passes.service.j2
