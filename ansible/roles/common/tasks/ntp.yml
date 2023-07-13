@@ -12,16 +12,6 @@
     state: started
   become: true
 
-- name: disable systemd-timesyncd and ntp if needed
-  ansible.builtin.service:
-    name: "{{ item }}"
-    enabled: false
-    state: stopped
-  become: true
-  loop:
-    - ntp
-    - systemd-timesyncd
-
 - name: write the ntp sources file
   ansible.builtin.template:
     src: ntp.sources.j2
