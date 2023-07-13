@@ -1,7 +1,9 @@
 ---
-- name: restart ntp
-  become: yes
-  service:
-    name: ntp
-    state: restarted
+- name: reload chrony sources
+  ansible.builtin.command:
+    argv:
+      - /usr/bin/chronyc
+      - reload
+      - sources
+  become: true
 ...

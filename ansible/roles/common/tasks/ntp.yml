@@ -1,25 +1,34 @@
 ---
-- name: install ntp
-  become: yes
-  apt:
-    update_cache: no
+- name: install chrony
+  ansible.builtin.package:
+    name: chrony
     state: present
-    name: ntp
+  become: true
 
-- name: disable systemd-timesyncd
-  become: yes
-  service:
-    name: systemd-timesyncd
+- name: ensure chrony is enabled and running
+  ansible.builtin.service:
+    name: chrony
+    enabled: true
+    state: started
+  become: true
+
+- name: disable systemd-timesyncd and ntp if needed
+  ansible.builtin.service:
+    name: "{{ item }}"
+    enabled: false
     state: stopped
-    enabled: no
+  become: true
+  loop:
+    - ntp
+    - systemd-timesyncd
 
-- name: ntp config file
-  become: yes
-  template:
-    src: ntp.conf.j2
-    dest: /etc/ntp.conf
+- name: write the ntp sources file
+  ansible.builtin.template:
+    src: ntp.sources.j2
+    dest: /etc/chrony/sources.d/ntp.sources
     owner: root
     group: root
-    mode: 0644
-  notify: restart ntp
+    mode: '0644'
+  become: true
+  notify: reload chrony sources
 ...

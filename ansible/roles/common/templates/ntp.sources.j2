@@ -1,0 +1,4 @@
+# {{ ansible_managed }}
+{% for s in ntp_servers %}
+pool {{ s }} iburst{% if loop.first %}prefer{% endif %}
+{% endfor %}

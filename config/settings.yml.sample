@@ -10,9 +10,9 @@ altitude: 0.0
 timezone_offset: -5
 
 # ntp configurations
-#   ntp_server - if you have a local server (e.g. stratum1), you can use this setting
+#   ntp_servers - if you have a local server (e.g. stratum1), you can use this setting
 #        to specify a hostname or ip address to communicate with the ntp server
-ntp_server: []
+ntp_servers: []
 
 # test settings when running test scripts
 #   test_gain - gain to use for scanner test scripts
