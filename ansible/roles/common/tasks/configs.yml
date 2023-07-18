@@ -1,139 +1,118 @@
 ---
 - name: noaa environment variables
-  template:
+  ansible.builtin.template:
     src: noaa-v2.conf.j2
-    dest: ~pi/.noaa-v2.conf
-    owner: pi
-    group: pi
-    mode: 0644
+    dest: "{{ ansible_user_dir }}/.noaa-v2.conf"
+    owner: "{{ ansible_user_id }}"
+    mode: '0644'
 
 - name: predict directory
-  file:
-    path: ~pi/.predict
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/.predict"
+    owner: "{{ ansible_user_id }}"
+    mode: '0755'
     state: directory
-    owner: pi
-    group: pi
-    mode: 0755
 
 - name: predict config file
-  template:
+  ansible.builtin.template:
     src: predict.qth.j2
-    dest: ~pi/.predict/predict.qth
-    owner: pi
-    group: pi
-    mode: 0644
+    dest: "{{ ansible_user_dir }}/.predict/predict.qth"
+    owner: "{{ ansible_user_id }}"
+    mode: '0644'
 
 - name: wxtoimg config file
-  template:
+  ansible.builtin.template:
     src: wxtoimgrc.j2
-    dest: ~pi/.wxtoimgrc
-    owner: pi
-    group: pi
-    mode: 0644
+    dest: "{{ ansible_user_dir }}/.wxtoimgrc"
+    owner: "{{ ansible_user_id }}"
+    mode: '0644'
 
 - name: wxtoimg license terms acceptance file
-  copy:
+  ansible.builtin.copy:
     src: wxtoimglic
-    dest: ~pi/.wxtoimglic
-    owner: pi
-    group: pi
-    mode: 0644
+    dest: "{{ ansible_user_dir }}/.wxtoimglic"
+    owner: "{{ ansible_user_id }}"
+    mode: '0644'
 
 - name: log directory for raspberry-noaa-v2 logs
-  become: yes
-  file:
+  ansible.builtin.file:
     path: /var/log/raspberry-noaa-v2
-    state: directory
-    owner: pi
-    group: pi
+    owner: "{{ ansible_user_id }}"
     mode: 0755
+    state: directory
+  become: true
 
 - name: logrotate settings for raspberry-noaa-v2 logs
-  become: yes
-  copy:
+  ansible.builtin.copy:
     src: logrotate-settings
     dest: /etc/logrotate.d/raspberry-noaa-v2
     owner: root
     group: root
-    mode: 0644
+    mode: '0644'
+  become: true
 
-- name: gnuradio home directory
-  file:
-    path: ~pi/.gnuradio
+- name: gnuradio home directories
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/{{ item }}"
+    owner: "{{ ansible_user_id }}"
+    mode: '0755'
     state: directory
-    owner: pi
-    group: pi
-    mode: 0755
-
-- name: gnuradio prefs directory
-  file:
-    path: ~pi/.gnuradio/prefs
-    state: directory
-    owner: pi
-    group: pi
-    mode: 0755
+  loop:
+    - .gnuradio
+    - .gnuradio/prefs
 
 - name: gnuradio prefs file
-  copy:
+  ansible.builtin.copy:
     src: vmcircbuf_default_factory
-    dest: ~pi/.gnuradio/prefs/vmcircbuf_default_factory
-    owner: pi
-    group: pi
-    mode: 0644
+    dest: "{{ ansible_user_dir }}/.gnuradio/prefs/vmcircbuf_default_factory"
+    owner: "{{ ansible_user_id }}"
+    mode: '0644'
 
 - name: disable wifi power mgmt script
   become: yes
-  copy:
+  ansible.builtin.copy:
     src: disable-wifi-powermgmt.sh
     dest: /usr/local/sbin/disable-wifi-powermgmt.sh
     owner: root
     group: root
-    mode: 0755
-  when: disable_wifi_power_mgmt | bool
-  register: wifi_powermgmt_script
+    mode: '0755'
+  when: disable_wifi_power_mgmt
 
 - name: disable wifi power mgmt service definition
-  become: yes
-  copy:
+  ansible.builtin.copy:
     src: disable-wifi-powermgmt.service
-    dest: /lib/systemd/system/disable-wifi-powermgmt.service
+    dest: /etc/systemd/system/disable-wifi-powermgmt.service
     owner: root
     group: root
-    mode: 0644
-  when: disable_wifi_power_mgmt | bool
-  register: wifi_powermgmt_service
+    mode: '0644'
+  become: true
+  when: disable_wifi_power_mgmt
 
 - name: enable systemd wifi power management disable service
-  become: yes
-  systemd:
-    daemon_reload: yes
-    name: disable-wifi-powermgmt.service
-    enabled: yes
-  when: (wifi_powermgmt_script.changed or wifi_powermgmt_service.changed) and (disable_wifi_power_mgmt|bool)
+  ansible.builtin.systemd:
+    name: disable-wifi-powermgmt
+    enabled: true
+    daemon_reload: true
+  become: true
+  when: disable_wifi_power_mgmt
 
 - name: annotation directory
-  file:
-    path: ~pi/config/annotation
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/config/annotation"
     state: directory
     owner: pi
     group: pi
     mode: 0755
 
-- name: annotation file (sample for modification)
-  copy:
-    src: annotation.html.j2_file
-    dest: ~pi/raspberry-noaa-v2/config/annotation/annotation.html.j2
-    force: no
+- name: annotation files (sample for modification)
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ ansible_user_dir }}/raspberry-noaa-v2/config/annotation/{{ item.dest | default(item.src) }}"
     owner: pi
     group: pi
-    mode: 0600
-
-- name: annotation file image (sample for modification)
-  copy:
-    src: raspberry-noaa-v2-logo.png
-    dest: ~pi/raspberry-noaa-v2/config/annotation/raspberry-noaa-v2-logo.png
-    force: no
-    owner: pi
-    group: pi
-    mode: 0600
-...
+    mode: 0644
+    force: false
+  loop:
+    - src: annotation.html.j2_file
+      dest: annotation.html.j2
+    - src: raspberry-noaa-v2-logo.png

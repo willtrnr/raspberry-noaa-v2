@@ -1,25 +1,40 @@
 ---
 # environment configuration files
-- include: configs.yml
+- ansible.builtin.import: configs.yml
+  tags:
+    - configs
 
 # dependent packages and libs to be installed
-- include: dependencies.yml
+- ansible.builtin.import: dependencies.yml
+  tags:
+    - dependencies
 
 # ntp configurations
-- include: ntp.yml
+- ansible.builtin.import: ntp.yml
+  tags:
+    - ntp
+    - chrony
 
 # core software modules
-- include: sdr.yml
+- ansible.builtin.import: sdr.yml
+  tags:
+    - sdr
 
 # tools and utilities
-- include: tools.yml
-
-# ramfs setup
-- include: ramfs.yml
+- ansible.builtin.import: tools.yml
+  tags:
+    - tools
 
 # email setup
-- include: email.yml
+- ansible.builtin.import: email.yml
+  when:
+    - enable_email_push
+  tags:
+    - email
 
 # twitter push setup
-- include: twitter.yml
-...
+- ansible.builtin.import: twitter.yml
+  when:
+    - enable_twitter_push
+  tags:
+    - twitter

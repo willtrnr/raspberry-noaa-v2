@@ -1,9 +1,6 @@
 ---
 - name: install dependencies
-  become: yes
-  apt:
-    update_cache: yes
-    state: present
+  ansible.builtin.package:
     name:
       - at
       - bc
@@ -26,15 +23,16 @@
       - libxft-dev
       - libxft2
       - predict
-      - python3-pip
       - python-setuptools
+      - python3-pip
       - socat
       - sox
       - sqlite3
+    state: present
+  become: true
 
 - name: install wkhtmltox (wkhtmltoimg)
-  become: yes
-  apt:
+  ansible.builtin.apt:
     deb: https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox_0.12.6-1.raspberrypi.buster_armhf.deb
     state: present
-...
+  become: true

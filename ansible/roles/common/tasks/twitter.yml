@@ -1,19 +1,16 @@
 ---
 - name: install tweepy if twitter push is enabled
-  become: yes
-  pip:
+  ansible.builtin.pip:
     name: tweepy
     executable: pip3
     state: present
-  when: enable_twitter_push | bool
+  become: true
 
 - name: drop template twitter tweepy config file
-  copy:
+  ansible.builtin.copy:
     src: tweepy.conf
-    dest: /home/pi/.tweepy.conf
-    force: no
-    owner: pi
-    group: pi
-    mode: 0600
-  when: enable_twitter_push | bool
+    dest: "{{ ansible_user_dir }}/.tweepy.conf"
+    owner: "{{ ansible_user_id }}"
+    mode: '0600'
+    force: false
 ...
