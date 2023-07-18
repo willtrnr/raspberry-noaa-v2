@@ -1,39 +1,39 @@
 ---
 # environment configuration files
-- ansible.builtin.import: configs.yml
+- ansible.builtin.import_tasks: configs.yml
   tags:
     - configs
 
 # dependent packages and libs to be installed
-- ansible.builtin.import: dependencies.yml
+- ansible.builtin.import_tasks: dependencies.yml
   tags:
     - dependencies
 
 # ntp configurations
-- ansible.builtin.import: ntp.yml
+- ansible.builtin.import_tasks: ntp.yml
   tags:
     - ntp
     - chrony
 
 # core software modules
-- ansible.builtin.import: sdr.yml
+- ansible.builtin.import_tasks: sdr.yml
   tags:
     - sdr
 
 # tools and utilities
-- ansible.builtin.import: tools.yml
+- ansible.builtin.import_tasks: tools.yml
   tags:
     - tools
 
 # email setup
-- ansible.builtin.import: email.yml
+- ansible.builtin.import_tasks: email.yml
   when:
     - enable_email_push
   tags:
     - email
 
 # twitter push setup
-- ansible.builtin.import: twitter.yml
+- ansible.builtin.import_tasks: twitter.yml
   when:
     - enable_twitter_push
   tags:
