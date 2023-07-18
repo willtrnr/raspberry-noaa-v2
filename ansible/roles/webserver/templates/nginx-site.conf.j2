@@ -31,7 +31,7 @@ server {
   server_name {{ web_server_name }};
 
   root {{ web_home }}/public/;
-  index index.php index.htm index.html
+  index index.php index.htm index.html;
 
   location /audio/ {
     alias /srv/audio/;
