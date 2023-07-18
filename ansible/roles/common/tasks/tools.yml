@@ -1,48 +1,73 @@
 ---
-- name: install wxtoimg
-  become: yes
-  apt:
-    deb: "{{ noaa_home }}/software/wxtoimg-armhf-2.11.2-beta.deb"
-    state: present
-    update_cache: no
-
-- name: check if meteor_demod software is installed
-  stat:
-    path: /usr/bin/meteor_demod
+- name: check if meteor_demod is installed
+  ansible.builtin.shell:
+    cmd: 'command -v meteor_demod'
   register: meteor_demod_bin
 
-- name: git clone meteor_demod software
-  git:
-    repo: https://github.com/dbdexter-dev/meteor_demod.git
-    dest: /tmp/meteor_demod
-    update: no
-  register: meteor_demod
-  when: not meteor_demod_bin.stat.exists
+- name: make and install meteor_demod
+  when:
+    - meteor_demod_bin.rc != 0
+  block:
+    - name: create a temporary directory for build
+      ansible.builtin.tempfile:
+        state: directory
+        suffix: meteor_demod
+      register: meteor_demod_tmp
 
-- name: make meteor_demod software
-  command: make
-  args:
-    chdir: /tmp/meteor_demod
-    creates: /tmp/meteor_demod/src/meteor_demod
-  when: meteor_demod.changed
+    - name: install necessary tools
+      ansible.builtin.package:
+        name:
+          - build-essential
+          - cmake
+        state: present
+      become: true
 
-- name: install meteor_demod software
-  become: yes
-  command: make install
-  args:
-    chdir: /tmp/meteor_demod
-    creates: /usr/bin/meteor_demod
-  when: meteor_demod.changed
+    - name: clone the meteor_demod repository
+      ansible.builtin.git:
+        repo: 'https://github.com/dbdexter-dev/meteor_demod.git'
+        dest: "{{ meteor_demod_tmp.path }}"
+        update: false
+
+    - name: create the build directory
+      ansible.builtin.file:
+        path: "{{ meteor_demod_tmp.path }}/build"
+        owner: "{{ ansible_user_id }}"
+        mode: '0755'
+        state: directory
+
+    - name: prepare the build
+      ansible.builtin.command:
+        argv:
+          - cmake
+          - -DENABLE_TUI=OFF
+          - ..
+        chdir: "{{ meteor_demod_tmp.path }}/build"
+
+    - name: compile the code
+      ansible.builtin.command:
+        argv: ['make']
+        chdir: "{{ meteor_demod_tmp.path }}/build"
+
+    - name: install the executable
+      ansible.builtin.command:
+        argv: ['make', 'install']
+        chdir: "{{ meteor_demod_tmp.path }}/build"
+      become: true
+  always:
+    - name: remove the temporary build directory
+      ansible.builtin.file:
+        path: "{{ meteor_demod_tmp.path }}"
+        state: absent
 
 - name: install medet_arm
-  become: yes
   copy:
     src: "{{ noaa_home }}/software/medet_arm"
-    dest: /usr/bin/medet_arm
+    dest: /usr/local/bin/medet_arm
     owner: root
     group: root
     mode: '0755'
     remote_src: true
+  become: true
 
 - name: create the systemd pass schedule service
   ansible.builtin.template:
@@ -68,92 +93,34 @@
     enabled: true
   become: true
 
-- name: create database
-  shell: "/usr/bin/sqlite3 {{ noaa_home }}/db/panel.db < {{ noaa_home }}/db_migrations/00_seed_schema.sql"
-  args:
-    executable: /bin/bash
+- name: create the passes database
+  ansible.builtin.shell:
+    cmd: "/usr/bin/sqlite3 {{ noaa_home | quote }}/db/panel.db < {{ noaa_home | quote }}/db_migrations/00_seed_schema.sql"
     creates: "{{ noaa_home }}/db/panel.db"
 
-- name: create map directory
-  file:
-    path: "{{ noaa_home }}/tmp/map"
+- name: create temporary directories
+  ansible.builtin.file:
+    path: "{{ noaa_home }}/tmp/{{ item }}"
+    owner: "{{ ansible_user_id }}"
+    mode: '0755'
     state: directory
-    owner: pi
-    group: pi
-    mode: 0755
+  loop:
+    - annotation
+    - map
+    - meteor
+    - scanner
 
-- name: create meteor directory
-  file:
-    path: "{{ noaa_home }}/tmp/meteor"
-    state: directory
-    owner: pi
-    group: pi
-    mode: 0755
-
-- name: create annotation directory
-  file:
-    path: "{{ noaa_home }}/tmp/annotation"
-    state: directory
-    owner: pi
-    group: pi
-    mode: 0755
-
-- name: create scanner directory
-  file:
-    path: "{{ noaa_home }}/tmp/scanner"
-    state: directory
-    owner: pi
-    group: pi
-    mode: 0755
-
-- name: create images directory
-  become: yes
-  file:
-    path: "{{ images_output }}"
-    state: directory
-    owner: pi
-    mode: 0775
-
-- name: create thumbnails directory
-  become: yes
-  file:
-    path: "{{ images_output }}/thumb"
-    state: directory
-    owner: pi
-    mode: 0775
-
-- name: create audio root directory
-  become: yes
-  file:
-    path: "{{ audio_output }}"
-    state: directory
-    owner: pi
-    group: pi
-    mode: 0775
-
-- name: create noaa audio directory
-  become: yes
-  file:
-    path: "{{ audio_output }}/noaa"
-    state: directory
-    owner: pi
-    group: pi
-    mode: 0775
-
-- name: create meteor audio directory
-  become: yes
-  file:
-    path: "{{ audio_output }}/meteor"
-    state: directory
-    owner: pi
-    group: pi
-    mode: 0775
-
-- name: create videos directory
-  become: yes
-  file:
-    path: "{{ videos_output }}"
-    state: directory
-    owner: pi
-    mode: 0775
-...
+- name: create output directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: "{{ ansible_user_id }}"
+    group: www-data
+    mode: '2755'
+  become: true
+  loop:
+    - "{{ audio_output }}"
+    - "{{ audio_output }}/noaa"
+    - "{{ audio_output }}/meteor"
+    - "{{ images_output }}"
+    - "{{ images_output }}/thumb"
+    - "{{ videos_output }}"

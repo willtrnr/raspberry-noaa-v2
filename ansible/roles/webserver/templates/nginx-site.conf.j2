@@ -1,8 +1,10 @@
 server {
 
+  listen {{ web_port }} default_server;
+  listen [::]:{{ web_port }} default_server;
+
 {% if enable_tls %}
-  listen 80 default_server;
-  listen [::]:80 default_server;
+  server_name {{ web_server_name }};
 
   location / {
     return 301 https://$host$request_uri;
@@ -23,9 +25,6 @@ server {
   ssl_protocols TLSv1.2 TLSv1.3;
   ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384:DHE-RSA-CHACHA20-POLY1305;
   ssl_prefer_server_ciphers off;
-{% else %}
-  listen 80 default_server;
-  listen [::]:80 default_server;
 {% endif %}
 
   server_name {{ web_server_name }};
@@ -34,15 +33,18 @@ server {
   index index.php index.htm index.html;
 
   location /audio/ {
-    alias /srv/audio/;
+    alias {{ audio_output }};
+    autoindex on;
   }
 
   location /images/ {
-    alias /srv/images/;
+    alias {{ images_output }};
+    autoindex on;
   }
 
   location /videos/ {
-    alias /srv/videos/;
+    alias {{ videos_output }};
+    autoindex on;
   }
 
   location ~ \.php$ {
