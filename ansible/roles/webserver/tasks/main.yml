@@ -56,7 +56,7 @@
 - name: create the artifact directories
   ansible.builtin.file:
     path: "{{ item }}"
-    user: root
+    owner: root
     group: www-data
     mode: '2775'
     state: directory
