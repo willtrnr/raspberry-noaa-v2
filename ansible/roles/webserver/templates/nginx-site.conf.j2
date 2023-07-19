@@ -32,20 +32,26 @@ server {
   root {{ web_home }}/public/;
   index index.php index.htm index.html;
 
+{% if audio_output %}
   location /audio/ {
-    alias {{ audio_output }};
+    alias {{ audio_output }}/;
     autoindex on;
   }
+{% endif %}
 
+{% if images_output %}
   location /images/ {
-    alias {{ images_output }};
+    alias {{ images_output }}/;
     autoindex on;
   }
+{% endif %}
 
+{% if videos_output %}
   location /videos/ {
-    alias {{ videos_output }};
+    alias {{ videos_output }}/;
     autoindex on;
   }
+{% endif %}
 
   location ~ \.php$ {
     fastcgi_param HTTP_PROXY "";
