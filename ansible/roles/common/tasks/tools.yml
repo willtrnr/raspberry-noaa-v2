@@ -117,8 +117,8 @@
   ansible.builtin.file:
     path: "{{ item }}"
     owner: "{{ ansible_user_id }}"
-    group: www-data
     mode: '2755'
+    state: directory
   become: true
   loop:
     - "{{ audio_output }}"

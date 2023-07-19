@@ -53,16 +53,18 @@
     mode: '0644'
   become: true
 
-- name: create the artifact directories
+- name: create output directories
   ansible.builtin.file:
     path: "{{ item }}"
-    owner: root
+    owner: "{{ ansible_user_id }}"
     group: www-data
     mode: '2775'
     state: directory
   become: true
   loop:
     - "{{ audio_output }}"
+    - "{{ audio_output }}/noaa"
+    - "{{ audio_output }}/meteor"
     - "{{ images_output }}"
     - "{{ images_output }}/thumb"
     - "{{ videos_output }}"
@@ -76,7 +78,7 @@
   become: true
 
 - name: check if self-signed certificate is expired
-  command:
+  ansible.builtin.command:
     argv:
       - openssl
       - x509
@@ -126,6 +128,7 @@
   ansible.builtin.file:
     src: ../sites-available/default
     dest: /etc/nginx/sites-enabled/default
+    force: true
     state: link
   become: true
   notify: restart nginx
