@@ -8,9 +8,12 @@
     group: root
     mode: 0644
 
-- name: check if rtl-sdr software is installed
-  stat:
-    path: /usr/local/bin/rtl_sdr
+- name: check if rtl-sdr is installed
+  ansible.builtin.shell:
+    cmd: 'command -v rtl_sdr'
+  failed_when: false
+  changed_when: false
+  check_mode: false
   register: rtlsdr_bin
 
 - name: git clone rtl-sdr software
@@ -19,7 +22,7 @@
     dest: /tmp/rtl-sdr
     update: no
   register: rtlsdr
-  when: not rtlsdr_bin.stat.exists
+  when: rtlsdr_bin.rc != 0
 
 - name: create rtl-sdr build directory
   file:

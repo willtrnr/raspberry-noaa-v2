@@ -2,6 +2,9 @@
 - name: check if meteor_demod is installed
   ansible.builtin.shell:
     cmd: 'command -v meteor_demod'
+  failed_when: false
+  changed_when: false
+  check_mode: false
   register: meteor_demod_bin
 
 - name: make and install meteor_demod
