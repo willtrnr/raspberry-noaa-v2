@@ -11,7 +11,7 @@
 [ $# -lt 1 ] && echo "usage: $0 time (e.g. 1s, 10m, 2h)" && exit -1
 scriptpath="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 duration=$1
-outfile=timed_scan_$(date  +"%d.%m.%y-%H.%M").csv.gz
+outfile=timed_scan_$(date  +"%y.%m.%d-%H.%M").csv.gz
 outpath=$HOME/raspberry-noaa-v2/tmp/scanner
 
 if ! [[ "$duration" =~ ^[0-9]+[s,m,h]*$ ]] ; then

@@ -14,12 +14,12 @@
 . "$HOME/.noaa-v2.conf"
 . "$NOAA_HOME/scripts/common.sh"
 
-[ $# -lt 1 ] && outfile=scan_$(date  +"%d.%m.%y-%H.%M").csv.gz || outfile=$1	#important: outfile needs to end with csv.gz
+[ $# -lt 1 ] && outfile=scan_$(date  +"%y.%m.%d-%H.%M").csv.gz || outfile=$1	#important: outfile needs to end with csv.gz
 
 scriptpath="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
 
 # Change frequency here if you want to scan more/less.
-range="137M:138M:1k" # Format: StartFreq:StopFreq:Resolution
+range="136M:138M:1k" # Format: StartFreq:StopFreq:Resolution
 
 echo "
 $(tput setaf 2)
@@ -34,4 +34,4 @@ $(tput setaf 3)
         (note that gzip output is buffered in chunks, so it won't be updated immediately)
 $(tput sgr0)"
 
-nohup rtl_power ${TEST_ENABLE_BIAS_TEE} -f $range -g $TEST_GAIN -c 25% -d ${TEST_SDR_DEVICE_ID} 2> /dev/null | gzip > $outfile &
+nohup rtl_power ${TEST_ENABLE_BIAS_TEE} -f $range -g $TEST_GAIN -c 0.2 -d ${TEST_SDR_DEVICE_ID} 2> /dev/null | gzip > $outfile &
